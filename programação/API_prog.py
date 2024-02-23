@@ -2,7 +2,7 @@
 # a post - consiste em uma requisição post que retorna uma mensagem amigavel json definida pela equipe-
 #  e a post - explicar a post -
 
-# url base - localhost
+# url base - http://localhost:5000
 
 # endpoints - Post /age
 #           - GET /municipio-bairros
@@ -14,6 +14,7 @@
 # importações
 from flask import Flask, jsonify, request
 import datetime
+import requests
 
 # criação da aplicação
 app = Flask(__name__)
@@ -128,6 +129,49 @@ def geraMensagem():
         return jsonify(erroFuturo)
 #_________________________________________________________________________________________________________________________________________________________________________
 #segunda tarefa
+@app.route("/municipio-bairros", methods=['GET'])
+def bairros_por_municipio():
+    #requisição e tratamento de entrada
+    municipio_nome = request.args.get('municipio',None,None) #capura o municipio informado no query
+    municipio_nome = municipio_nome.replace('-'," ") #coloca espaço entre as palavras
+    municipio_nome = municipio_nome.upper()          #coloca todas as letras em maiusculo
+
+    
+    #requsição dos municipios na API do IBGE e indexação em um dicionario {nome:id}
+    link_municipios = 'https://servicodados.ibge.gov.br/api/v1/localidades/municipios'
+
+    requisicao_municipios = requests.get(link_municipios).json() #requisição do dicionario contendo informações de todos os municipios do brasil
+    dicionario_nome_id = {} #futuro dicionario {nome:id}
+
+    for municipio in requisicao_municipios: #captura cada municipio do json individualmente
+
+        dicionario_nome_id[municipio["nome"].upper()] = municipio['id'] #utiliza os campos nome e id para incluir em um novo dicionario id:nome (que retorna o id informando o nome do municipio)
+
+
+
+    #busca o id do municipio infordado no query
+    id_municipio = dicionario_nome_id[municipio_nome]
+
+    #requisição dos bairros do municipio informado
+    link_bairros = f'https://servicodados.ibge.gov.br/api/v1/localidades/municipios/{id_municipio}/subdistritos'
+    requisicao_bairros = requests.get(link_bairros).json() ##requisição do dicionario contendo informações de todos os bairros do municipio informado
+
+    lista_bairros = [] #futura lista de nomes dos bairros
+
+    #pega cada bairro individualmente da lista de bairros fornecida pela API no IBGE
+    for bairro in requisicao_bairros:
+        lista_bairros.append(bairro["nome"]) #capura o nome de cada um e adiciona na lista de nomes de bairros
+
+    #dicionario da resposta esperada pela tarefa
+    resposta = {
+        'municipio': municipio_nome,
+        'bairros':lista_bairros
+
+        }
+    return jsonify(resposta)
+
+
+
 
 
 
