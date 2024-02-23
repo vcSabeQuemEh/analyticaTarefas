@@ -1,11 +1,11 @@
 # objetivo - API separada em duas etapas de post e get na qual
 # a post - consiste em uma requisição post que retorna uma mensagem amigavel json definida pela equipe-
-#  e a post - explicar a post -
+#  e a post - requisião GET que recebe uma informação query de municipio e retorna os bairros pertencentes ao municipio -
 
 # url base - http://localhost:5000
 
-# endpoints - Post /age
-#           - GET /municipio-bairros
+# endpoints - Post /age  body{'name':'nome' , 'birthdate' : 'yyyy-mm-dd' , 'date': 'YYYY-MM-DD'}                             
+#           - GET /municipio-bairros (?municipio=NOME-DO-MUNICIPIO)
 
 
 # recursos - mensagens
@@ -78,7 +78,7 @@ def geraMensagem():
     #encerra antes de fazer os calculos sem as informações
     if faltando:
         mensagem = "há falta de informações no body " + verifica_keys(info_pessoa)
-        return {'quote':mensagem}
+        return {'erro':mensagem}
     
 
     #captura de datas
@@ -104,7 +104,7 @@ def geraMensagem():
     
     #mensagem de erro detalhado
     erroFuturo = {
-        'quote': "A data informada deverá estar no futuro (de amanhã em diante)" 
+        'erro': "A data informada deverá estar no futuro (de amanhã em diante)" 
     }
 
     #calculos
@@ -147,6 +147,12 @@ def bairros_por_municipio():
 
         dicionario_nome_id[municipio["nome"].upper()] = municipio['id'] #utiliza os campos nome e id para incluir em um novo dicionario id:nome (que retorna o id informando o nome do municipio)
 
+    #verificação se o municipio informado existe na listagem de municipios do brasil, caso não esteja retorna erro
+    if municipio_nome not in list(dicionario_nome_id.keys()):
+        mensagem = {
+            'erro' : 'Municipio não encontrado, digite um Municipio válido'
+        }
+        return mensagem
 
 
     #busca o id do municipio infordado no query
@@ -155,6 +161,12 @@ def bairros_por_municipio():
     #requisição dos bairros do municipio informado
     link_bairros = f'https://servicodados.ibge.gov.br/api/v1/localidades/municipios/{id_municipio}/subdistritos'
     requisicao_bairros = requests.get(link_bairros).json() ##requisição do dicionario contendo informações de todos os bairros do municipio informado
+
+    #no caso de não haver subsdistritos busca os distritos
+    if requisicao_bairros == []: #uma requisição vazia retorna lista vazia ao inves de dicionario vazio
+        link_bairros = f'https://servicodados.ibge.gov.br/api/v1/localidades/municipios/{id_municipio}/distritos'
+        requisicao_bairros = requests.get(link_bairros).json() 
+
 
     lista_bairros = [] #futura lista de nomes dos bairros
 
@@ -169,11 +181,6 @@ def bairros_por_municipio():
 
         }
     return jsonify(resposta)
-
-
-
-
-
 
 # encerramento da aplicação
 app.run(port=5000, host='localhost', debug=True)
