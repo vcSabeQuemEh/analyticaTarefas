@@ -1,10 +1,11 @@
 # objetivo - API separada em duas etapas de post e get na qual
 # a post - consiste em uma requisição post que retorna uma mensagem amigavel json definida pela equipe-
-#  e a post - requisião GET que recebe uma informação query de municipio e retorna os bairros pertencentes ao municipio -
+#  e a get - requisião GET que recebe uma informação query de municipio e retorna os bairros pertencentes ao municipio -
 
-# url base - http://localhost:5000
+# url base - http://localhost:5000/
 
-# endpoints - Post /age  body{'name':'nome' , 'birthdate' : 'yyyy-mm-dd' , 'date': 'YYYY-MM-DD'}                             
+# endpoints - Post /age  body{'name':'nome' , 'birthdate' : 'yyyy-mm-dd' , 'date': 'YYYY-MM-DD'}
+                             
 #           - GET /municipio-bairros (?municipio=NOME-DO-MUNICIPIO)
 
 
@@ -91,6 +92,7 @@ def geraMensagem():
 
     #separa ano, mes e dia informados no dicionario e conserva em string
     #motivo: dias e meses menores que 10 seguirem o modelo dd-mm -> 01/07 pois quando convertidas em int, perde o 0 a esquerda
+    #2002-12-23
     ano_info_str = info_pessoa['date'][:4]
     mes_info_str = info_pessoa['date'][5:7]
     dia_info_str = info_pessoa['date'][8:]
